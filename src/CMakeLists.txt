@@ -74,6 +74,7 @@ if (${CMAKE_SYSTEM_NAME} STREQUAL "SunOS")
     endif ()
 endif ()
 
+add_subdirectory(minicarp)
 #
 # end of the compiler/machine/os dependent stuff!
 #

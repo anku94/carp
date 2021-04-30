@@ -1,67 +1,69 @@
 #pragma once
 
-
+#include "common.h"
 #include "concurrentqueue.h"
-#include "pdlfs-common/env.h"
+#include "minicarp_types.h"
 
+#include <pdlfs-common/env.h>
 
-namespace pdlfs{
-namespace minicarp{
+namespace pdlfs {
+namespace carp {
 
-struct MiniCarpOptions {
-  uint32_t my_rank;
-  uint32_t num_ranks;
-  std::string mount_path;
-  std::string fname;
-  Env* env;
-};
+class MiniCarp {
+ public:
+  MiniCarp(const MiniCarpOptions& options)
+      : options_(options), producer_(nullptr) {
+    queues_.resize(options_.num_ranks);
 
-typedef struct particle_list{
-  Slice& keys;
-  Slice& values;
-}particle_list_t;
+    producer_ = new WholeFileReader(options_, queues_);
 
-class MiniCarp{
+    for (int i = 0; i < options_.num_ranks; i++) {
+      CarpReceiver* receiver = new CarpReceiver(options_, queues_[i]);
+      consumers_.push_back(receiver);
+    }
 
-protected:
- 
-  std::vector<moodycamel::ConcurrentQueue<particle_list_t>> queues_;
+    // execute producer.run and consumers.run using threadpool
+  }
 
+  ~MiniCarp() {
+    for (int i = 0; i < options_.num_ranks; i++) {
+      delete consumers_[i];
+    }
+    delete producer_;
+  }
+
+  // XXX: Not sure if these functions are required here, uncomment if necessary
+  // producer needs to implement this
+  // producer should spawn read from file do some calculations for pivots
+  //  virtual Status Produce() {
+  //    logf(LOG_INFO, "%s:%d: hello world\n", __func__, __LINE__);
+  //    return Status::OK();
+  //  }
+  //
+  //  virtual Status Consume(KVQueue& q) {
+  //    logf(LOG_INFO, "%s:%d: hello world\n", __func__, __LINE__);
+  //    return Status::OK();
+  //  }
+  //
+  //  virtual Status Insert(moodycamel::ConcurrentQueue<Slice>, KVItem* p_ctx) =
+  //  0;
+  //
+  //  virtual Status Flush() {
+  //    logf(LOG_INFO, "%s:%d: hello world\n", __func__, __LINE__);
+  //    return Status::OK();
+  //  }
+
+ private:
+  // close the file used for reading key vval pairs
+  friend class CarpReceiver;
+  void Close() { logf(LOG_INFO, "%s:%d: hello world\n", __func__, __LINE__); }
+
+  ThreadPool* thpool_;
+  std::vector<KVQueue> queues_;
+  Producer* producer_;
+  std::vector<Consumer*> consumers_;
   const MiniCarpOptions& options_;
-
-public:
-
-  MiniCarp(const MiniCarpOptions& options){
-    options_ = options;
-  }
-  
-  //producer needs to implement this
-  //producer should spawn read from file do some calculations for pivots
-  virtual Status Produce(){
-    logf(LOG_INFO, "%s:%d: hello world\n", __func__, __LINE__);
-    return Status::OK();
-  }
-
-  virtual Status Consume(moodycamel::ConcurrentQeueue<particle_list_t>){
-    logf(LOG_INFO, "%s:%d: hello world\n", __func__, __LINE__);
-    return Status::OK();
-  }
-
-  virtual Status Insert(moodycamel::ConcurrentQeueue<Slice>, 
-                          particle_list_t *p_ctx);
-
-  virtual Status Flush(){
-    logf(LOG_INFO, "%s:%d: hello world\n", __func__, __LINE__);
-    return Status::OK();
-  }
-
-  //close the file used for reading key vval pairs
-  virtual Status Close(){
-    logf(LOG_INFO, "%s:%d: hello world\n", __func__, __LINE__);
-    return Status::OK();
-  }
 };
 
-
-} //minicarp
-} //pdlfs
+}  // namespace carp
+}  // namespace pdlfs
