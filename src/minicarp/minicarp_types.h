@@ -4,8 +4,15 @@
 
 #pragma once
 
+#include "concurrentqueue.h"
+
 namespace pdlfs {
 namespace carp {
+
+static const int kv_size = 24;
+static const int k_size = 4;
+static const int v_size = 20;
+
 struct MiniCarpOptions {
   uint32_t num_ranks;
   std::string mount_path;
@@ -14,8 +21,24 @@ struct MiniCarpOptions {
 };
 
 struct KVItem {
-  Slice& key;
-  Slice& value;
+
+//TODO: can be const
+  // Slice& key;
+  // Slice& value;
+
+  float key;
+  char value[v_size];
+  
+  KVItem(float k, const char* v):key(k)
+  {
+    memcpy(value, v, v_size);
+  }
+
+  KVItem(const KVItem& kv){
+    key = kv.key;
+    memcpy(value, kv.value, v_size);
+  }
+
 };
 
 typedef moodycamel::ConcurrentQueue<KVItem> KVQueue;
@@ -32,25 +55,15 @@ class Worker {
 
 class Producer : public Worker {
  public:
-  Producer(const MiniCarpOptions& options, std::vector<KVQueue>& queues)
-      : options_(options), queues_(queues){};
+  Producer(const MiniCarpOptions& options, std::vector<KVQueue>& queues,
+            std::vector<float>& pivots)
+      : options_(options), queues_(queues), pivots_(pivots){};
 
- private:
+ protected:
   const MiniCarpOptions& options_;
   std::vector<KVQueue>& queues_;
-};
+  std::vector<float>& pivots_;
 
-/* This is probably complex enough to deserve its own .h/.cc */
-class WholeFileReader : public Producer {
- public:
-  WholeFileReader(const MiniCarpOptions& options, std::vector<KVQueue>& queues)
-      : Producer(options, queues) {}
-
-  virtual void Run() override {
-    logf(LOG_INFO,
-         "Maybe get file path from CarpOptions or something, start "
-         "reading/shuffling it");
-  }
 };
 
 class Consumer : public Worker {
