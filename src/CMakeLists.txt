@@ -10,6 +10,8 @@ set(THREADS_PREFER_PTHREAD_FLAG TRUE)
 # cmake 3.1 was released late 2014.
 find_package(Threads REQUIRED)
 
+find_package(deltafs REQUIRED)
+
 # common lib is always required
 set(CARP_REQUIRED_PACKAGES "pdlfs-common")
 

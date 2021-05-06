@@ -4,7 +4,10 @@
 
 #pragma once
 
+#include "../common.h"
 #include "concurrentqueue.h"
+
+#include <pdlfs-common/env.h>
 
 namespace pdlfs {
 namespace carp {
@@ -21,24 +24,19 @@ struct MiniCarpOptions {
 };
 
 struct KVItem {
-
-//TODO: can be const
+  // TODO: can be const
   // Slice& key;
   // Slice& value;
 
   float key;
   char value[v_size];
-  
-  KVItem(float k, const char* v):key(k)
-  {
-    memcpy(value, v, v_size);
-  }
 
-  KVItem(const KVItem& kv){
+  KVItem(float k, const char* v) : key(k) { memcpy(value, v, v_size); }
+
+  KVItem(const KVItem& kv) {
     key = kv.key;
     memcpy(value, kv.value, v_size);
   }
-
 };
 
 typedef moodycamel::ConcurrentQueue<KVItem> KVQueue;
@@ -55,15 +53,12 @@ class Worker {
 
 class Producer : public Worker {
  public:
-  Producer(const MiniCarpOptions& options, std::vector<KVQueue>& queues,
-            std::vector<float>& pivots)
-      : options_(options), queues_(queues), pivots_(pivots){};
+  Producer(const MiniCarpOptions& options, std::vector<KVQueue>& queues)
+      : options_(options), queues_(queues) {}
 
  protected:
   const MiniCarpOptions& options_;
   std::vector<KVQueue>& queues_;
-  std::vector<float>& pivots_;
-
 };
 
 class Consumer : public Worker {
@@ -74,23 +69,6 @@ class Consumer : public Worker {
  protected:
   const MiniCarpOptions& options_;
   KVQueue& queue_;
-};
-
-class CarpReceiver : public Consumer {
- public:
-  CarpReceiver(const MiniCarpOptions& options, KVQueue& queue)
-      : Consumer(options, queue) {
-    logf(LOG_INFO, "Init CarpDB instance here");
-  }
-
-  ~CarpReceiver() { logf(LOG_INFO, "Close CarpDB"); }
-
-  virtual void Run() override {
-    logf(LOG_DBUG, "CarpDB receiver");
-    while (!shutdown_) {
-      // pull from queue and insert
-    }
-  }
 };
 
 }  // namespace carp

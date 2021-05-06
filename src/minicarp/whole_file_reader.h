@@ -2,28 +2,35 @@
 
 #pragma once
 
-#include "common.h"
-#include "minicarp_types.h"
+#include "../common.h"
 #include "concurrentqueue.h"
+#include "minicarp_types.h"
 
 #include <pdlfs-common/env.h>
 
+namespace pdlfs {
+namespace carp {
 
-namespace pdlfs{
-namespace carp{
+// static?
+// static - for functions -
 
-
+class MiniCarp;
 class WholeFileReader : public Producer {
  public:
   WholeFileReader(const MiniCarpOptions& options, std::vector<KVQueue>& queues,
-                  std::vector<float>& pivots)
-      : Producer(options, queues, pivots) {}
+                  MiniCarp* mini_carp)
+      : Producer(options, queues) {}
 
   virtual void Run() override;
 
-  Status WholeFileReader::OpenFileHandle(SequentialFile** fh, uint64_t *fsz);
+ private:
+  Status OpenFileHandle(SequentialFile** fh, uint64_t* fsz);
 
-  int WholeFileReader::ComputeShuffleTarget(KVItem& kv);
+  int ComputeShuffleTarget(KVItem& kv);
+
+  std::vector<float> pivots_;
+
+  MiniCarp* const mini_carp_;
 };
-}
-}
+}  // namespace carp
+}  // namespace pdlfs

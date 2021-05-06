@@ -1,6 +1,7 @@
 #pragma once
 
 #include "minicarp_types.h"
+#include "receiver.h"
 #include "whole_file_reader.h"
 
 #include <pdlfs-common/env.h>
@@ -14,7 +15,7 @@ class MiniCarp {
       : options_(options), producer_(nullptr) {
     queues_.resize(options_.num_ranks);
 
-    producer_ = new WholeFileReader(options_, queues_, pivots_);
+    producer_ = new WholeFileReader(options_, queues_, this);
 
     for (int i = 0; i < options_.num_ranks; i++) {
       CarpReceiver* receiver = new CarpReceiver(options_, queues_[i]);
@@ -29,6 +30,19 @@ class MiniCarp {
       delete consumers_[i];
     }
     delete producer_;
+  }
+
+  void Run() { printf("hell oworld\n"); }
+
+  /* called by a producer */
+  void Shutdown() {
+    num_shutdown_++;
+    if (num_shutdown__ == num_producers_) {
+    for (consumer in consumers) {
+      consuymer.shutdwon();
+    }
+    }
+    return;
   }
 
   // XXX: Not sure if these functions are required here, uncomment if necessary
@@ -59,7 +73,6 @@ class MiniCarp {
 
   ThreadPool* thpool_;
   std::vector<KVQueue> queues_;
-  std::vector<float> pivots_;
   Producer* producer_;
   std::vector<Consumer*> consumers_;
   const MiniCarpOptions& options_;

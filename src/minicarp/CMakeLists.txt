@@ -1,10 +1,12 @@
 set(minicarp-srcs
         minicarp.cc
-        )
+        whole_file_reader.cc
+        ../common.cc)
 
 #add_executable(minicarp driver.cc ${minicarp-srcs})
 add_library(minicarp ${minicarp-srcs})
 target_link_libraries(minicarp pdlfs-common)
+target_link_libraries(minicarp deltafs)
 target_include_directories(minicarp PRIVATE ..)
 
 add_executable(minicarp-runner driver.cc)
