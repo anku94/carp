@@ -56,6 +56,8 @@ class Producer : public Worker {
   Producer(const MiniCarpOptions& options, std::vector<KVQueue>& queues)
       : options_(options), queues_(queues) {}
 
+  virtual ~Producer() = 0;
+
  protected:
   const MiniCarpOptions& options_;
   std::vector<KVQueue>& queues_;
@@ -65,6 +67,8 @@ class Consumer : public Worker {
  public:
   Consumer(const MiniCarpOptions& options, KVQueue& queue)
       : options_(options), queue_(queue) {}
+
+  virtual ~Consumer() = 0;
 
  protected:
   const MiniCarpOptions& options_;

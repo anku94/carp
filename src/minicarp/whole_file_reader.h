@@ -1,8 +1,6 @@
-
-
 #pragma once
 
-#include "../common.h"
+#include "common.h"
 #include "concurrentqueue.h"
 #include "minicarp_types.h"
 
@@ -19,7 +17,7 @@ class WholeFileReader : public Producer {
  public:
   WholeFileReader(const MiniCarpOptions& options, std::vector<KVQueue>& queues,
                   MiniCarp* mini_carp)
-      : Producer(options, queues) {}
+      : Producer(options, queues), mini_carp_(mini_carp) {}
 
   virtual void Run() override;
 

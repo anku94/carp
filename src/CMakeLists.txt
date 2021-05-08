@@ -43,6 +43,7 @@ target_include_directories(carp PUBLIC $<INSTALL_INTERFACE:include>)
 target_include_directories(carp BEFORE PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../include>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/../../include>)
+target_include_directories(carp PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(carp PUBLIC pdlfs-common)
 
 if (PDLFS_TBB)
@@ -81,7 +82,8 @@ if (${CMAKE_SYSTEM_NAME} STREQUAL "SunOS")
     endif ()
 endif ()
 
-add_subdirectory(minicarp)
 #
 # end of the compiler/machine/os dependent stuff!
 #
+
+add_subdirectory(minicarp)

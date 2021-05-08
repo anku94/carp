@@ -36,12 +36,12 @@ class MiniCarp {
 
   /* called by a producer */
   void Shutdown() {
-    num_shutdown_++;
-    if (num_shutdown__ == num_producers_) {
-    for (consumer in consumers) {
-      consuymer.shutdwon();
-    }
-    }
+//    num_shutdown_++;
+//    if (num_shutdown__ == num_producers_) {
+//    for (consumer in consumers) {
+//      consuymer.shutdwon();
+//    }
+//    }
     return;
   }
 
