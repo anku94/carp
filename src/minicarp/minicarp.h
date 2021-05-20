@@ -14,6 +14,7 @@ class MiniCarp {
   MiniCarp(const MiniCarpOptions& options)
       : options_(options), producer_(nullptr) {
     queues_.resize(options_.num_ranks);
+		printf(" file name is %s\n", options_.fname.c_str());
 
     producer_ = new WholeFileReader(options_, queues_, this);
 
@@ -32,7 +33,10 @@ class MiniCarp {
     delete producer_;
   }
 
-  void Run() { printf("hell oworld\n"); }
+  void Run() { 
+		
+		producer_->Run();
+	 }
 
   /* called by a producer */
   void Shutdown() {

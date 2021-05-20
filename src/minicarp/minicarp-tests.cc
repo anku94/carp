@@ -19,14 +19,18 @@ class MiniCarpTest {
 TEST(MiniCarpTest, HelloWorld) {
   Hello();
   MiniCarpOptions options;
+	options.fname = "/tmp/RDB-00000000.tbl"; //TODO let the producer pick it
+	options.num_ranks = 5;
+	options.env = Env::Default();
   MiniCarp mini_carp(options);
   mini_carp.Run();
 }
 
-TEST(MiniCarpTest, ReceiverTest) {
-  CarpReceiver r(options);
-  r.Run();
-}
+// TEST(MiniCarpTest, ReceiverTest) {
+// 	// MiniCarpOptions options;
+//   // CarpReceiver r(options);
+//   r.Run();
+// }
 }  // namespace carp
 }  // namespace pdlfs
 

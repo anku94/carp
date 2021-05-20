@@ -24,9 +24,6 @@ struct MiniCarpOptions {
 };
 
 struct KVItem {
-  // TODO: can be const
-  // Slice& key;
-  // Slice& value;
 
   float key;
   char value[v_size];
@@ -58,6 +55,8 @@ class Producer : public Worker {
 
   virtual ~Producer() = 0;
 
+	// ~Producer() {}
+
  protected:
   const MiniCarpOptions& options_;
   std::vector<KVQueue>& queues_;
@@ -69,6 +68,8 @@ class Consumer : public Worker {
       : options_(options), queue_(queue) {}
 
   virtual ~Consumer() = 0;
+
+	// ~Consumer() {}
 
  protected:
   const MiniCarpOptions& options_;

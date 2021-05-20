@@ -7,7 +7,9 @@
 #include "pdlfs-common/env.h"
 #include "pdlfs-common/status.h"
 
+#include <algorithm>
 #include <float.h>
+#include <inttypes.h>
 #include <map>
 #include <sstream>
 #include <stdint.h>
@@ -56,6 +58,9 @@ typedef struct PartitionManifestItem {
   uint64_t offset;
   float part_range_begin;
   float part_range_end;
+  float part_expected_begin;
+  float part_expected_end;
+  uint32_t updcnt;
   uint32_t part_item_count;
   uint32_t part_item_oob;
 
@@ -70,22 +75,61 @@ typedef struct PartitionManifestItem {
   bool operator<(const PartitionManifestItem& rhs) const {
 #define PROPLT(x) (x < rhs.x)
 #define PROPEQ(x) (x == rhs.x)
-    return (
-        PROPLT(epoch) || (PROPEQ(epoch) && PROPLT(part_range_begin)) ||
-        (PROPEQ(epoch) && PROPEQ(part_range_begin) && PROPLT(part_range_end)));
+    return (PROPLT(epoch) || (PROPEQ(epoch) && PROPLT(part_range_begin)) ||
+            (PROPEQ(epoch) && PROPEQ(part_range_begin) && PROPLT(offset)));
 #undef PROPLT
 #undef PROPEQ
   }
 
   std::string ToString() {
     char buf[1024];
-    snprintf(buf, 1024, "[EPOCH %d][%10llu]\t%.3f -> %.3f\t(Rank %d, %u items)\n",
-             epoch, offset, part_range_begin, part_range_end, rank,
-             part_item_count);
+    // clang-format off
+    snprintf(buf, 1024,
+             "[EPOCH %d][%10llu]\t%.3f -> %.3f\t"
+             "(Expected: %.3f to %.3f, Rank %d, %u items, %u OOB, Round %u)",
+             epoch, offset, part_range_begin, part_range_end,
+             part_expected_begin, part_expected_end, rank, part_item_count,
+             part_item_oob, updcnt);
+    // clang-format on
+    return buf;
+  }
+
+  std::string ToCSVString() {
+    // clang-format off
+    char buf[1024];
+    snprintf(buf, 1024,
+             "%d,%" PRIu64 ",%f,%f,%f,%f," /* ranges */
+             "%u,%u,%u", /* counts */
+             epoch, offset, 
+             part_range_begin, part_range_end, 
+             part_expected_begin, part_expected_end, 
+             part_item_count, part_item_oob, updcnt);
+    // clang-format on
     return buf;
   }
 
 } PartitionManifestItem;
+
+#define PROPLT(x) (lhs.x < rhs.x)
+#define PROPEQ(x) (lhs.x == rhs.x)
+struct PMIRangeComparator {
+  bool operator()(const PartitionManifestItem& lhs,
+                  const PartitionManifestItem& rhs) const {
+    return (
+        PROPLT(epoch) || (PROPEQ(epoch) && PROPLT(part_range_begin)) ||
+        (PROPEQ(epoch) && PROPEQ(part_range_begin) && PROPLT(part_range_end)));
+  }
+};
+
+struct PMIOffsetComparator {
+  bool operator()(const PartitionManifestItem& lhs,
+                  const PartitionManifestItem& rhs) const {
+    return (PROPLT(epoch) || (PROPEQ(epoch) && PROPLT(rank)) ||
+            (PROPEQ(epoch) && PROPEQ(rank) && PROPLT(offset)));
+  }
+};
+#undef PROPLT
+#undef PROPEQ
 
 class PartitionManifestMatch {
  public:
@@ -210,6 +254,18 @@ class PartitionManifest {
 
     return s;
   }
+
+  void SortByKey() {
+    std::sort(items_.begin(), items_.end(), PMIRangeComparator());
+  }
+
+  void SortByOffset() {
+    std::sort(items_.begin(), items_.end(), PMIOffsetComparator());
+  }
+
+  PartitionManifestItem& operator[](size_t i) { return this->items_[i]; }
+
+  size_t Size() const { return items_.size(); }
 
  private:
   friend class PartitionManifestReader;

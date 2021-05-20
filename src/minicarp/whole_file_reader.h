@@ -17,16 +17,18 @@ class WholeFileReader : public Producer {
  public:
   WholeFileReader(const MiniCarpOptions& options, std::vector<KVQueue>& queues,
                   MiniCarp* mini_carp)
-      : Producer(options, queues), mini_carp_(mini_carp) {}
+      : Producer(options, queues), mini_carp_(mini_carp), 
+			   pivots_(options_.num_ranks, 0) {
+			}
 
   virtual void Run() override;
+
+  std::vector<float> pivots_;
 
  private:
   Status OpenFileHandle(SequentialFile** fh, uint64_t* fsz);
 
   int ComputeShuffleTarget(KVItem& kv);
-
-  std::vector<float> pivots_;
 
   MiniCarp* const mini_carp_;
 };

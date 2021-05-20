@@ -1,6 +1,7 @@
 set(minicarp-srcs
         minicarp.cc
         whole_file_reader.cc
+				minicarp_types.cc
         ../common.cc)
 
 add_library(minicarp ${minicarp-srcs})
